@@ -1,0 +1,19 @@
+{
+  "name": "state-transition-issue",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dist/state-transition.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@chainsafe/bls": "^6.0.3",
+    "@chainsafe/blst": "^0.2.3",
+    "@chainsafe/lodestar-beacon-state-transition": "^0.33.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4"
+  }
+}
