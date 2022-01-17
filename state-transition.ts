@@ -21,14 +21,13 @@ interface Usecase {
 
 const usecases = [
   {
-    title: "USECASE #1 - Process phase0 only [OK]",
-    summary: `Loads a phase0 state and reads only phase0 blocks.
-      The stateTransition **succeeds** as expected.`,
+    title: "USECASE #1 - Process phase0 only",
+    summary: `Loads a phase0 state and reads only phase0 blocks.`,
     startSlot: 320,
     count: 64,
   },
   {
-    title: "USECASE #2 - Process phase0 state + altair blocks [OK]",
+    title: "USECASE #2 - Process phase0 state + altair blocks",
     summary: `Loads phase0 state from last phase0 slot.
       The stateTransition **succeeds** as expected, it correctly upgrades
       state from phase0 to altair and continues to process altair forks
@@ -38,16 +37,14 @@ const usecases = [
   },
   {
     title:
-      "USECASE #3 - Process altair state (after fork) + altair blocks [NOK]",
-    summary: `Loads state from the first altair slot.
-      But stateTransition **fails** due to 'Invalid state root at slot 2375684'`,
+      "USECASE #3 - Process altair state (after fork) + altair blocks",
+    summary: `Loads state from the first altair slot.`,
     startSlot: 2375680,
     count: 64,
   },
   {
-    title: "USECASE #4 - Process altair state + altair blocks [NOK]",
-    summary: `Same as previous usecase, but starts way after the fork.
-      The stateTransition function **fail** due to 'Invalid state root at slot 2880001'`,
+    title: "USECASE #4 - Process altair state + altair blocks",
+    summary: `Same as previous usecase, but starts way after the fork.`,
     startSlot: 2880000,
     count: 64,
   },
@@ -124,28 +121,14 @@ function createUtils() {
   // parse state and blocks with ssz library used bellow
   const utils = {
     phase0: {
-      readState: (data: Buffer): CachedBeaconState<phase0.BeaconState> => {
-        const tree = ssz.phase0.BeaconState.createTreeBackedFromBytes(data);
-        const config = createIBeaconConfig(
-          chainConfig,
-          tree.genesisValidatorsRoot
-        );
-        const opts = { skipSyncPubkeys: true };
-        return createCachedBeaconState(config, tree, opts);
-      },
+      readState: (data: Buffer) =>
+        ssz.phase0.BeaconState.createTreeBackedFromBytes(data),
       readBlock: (json: any) =>
         ssz.phase0.SignedBeaconBlock.createTreeBackedFromJson(json),
     },
     altair: {
-      readState: (data: Buffer): CachedBeaconState<altair.BeaconState> => {
-        const tree = ssz.altair.BeaconState.createTreeBackedFromBytes(data);
-        const config = createIBeaconConfig(
-          chainConfig,
-          tree.genesisValidatorsRoot
-        );
-        const opts = { skipSyncPubkeys: true };
-        return createCachedBeaconState(config, tree, opts);
-      },
+      readState: (data: Buffer) =>
+        ssz.altair.BeaconState.createTreeBackedFromBytes(data),
       readBlock: (json: any) =>
         ssz.altair.SignedBeaconBlock.createTreeBackedFromJson(json),
     },
@@ -158,15 +141,21 @@ function createUtils() {
       | CachedBeaconState<altair.BeaconState> => {
       // load data file
       const path = `./test-data/state-${slot}.ssz`;
-      console.log("readState(phase0) -> readFile at", path);
+      console.log("readState -> readFile at", path);
       const data: Buffer = fs.readFileSync(path);
 
       // determine the right fork and read state
+      let tree;
       if (slot < ALTAIR_SLOT) {
-        return utils.phase0.readState(data);
+        tree = utils.phase0.readState(data);
       } else {
-        return utils.altair.readState(data);
+        tree = utils.altair.readState(data);
       }
+      const config = createIBeaconConfig(
+        chainConfig,
+        tree.genesisValidatorsRoot
+      );
+      return createCachedBeaconState(config, tree as any);
     },
     readBlock: (
       slot: number
